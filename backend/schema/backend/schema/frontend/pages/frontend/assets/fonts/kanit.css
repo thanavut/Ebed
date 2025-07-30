@@ -1,0 +1,6 @@
+/* frontend/assets/fonts/kanit.css */
+@import url("https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&display=swap");
+
+body, h1, h2, h3, input, button, a {
+  font-family: 'Kanit', sans-serif;
+}
