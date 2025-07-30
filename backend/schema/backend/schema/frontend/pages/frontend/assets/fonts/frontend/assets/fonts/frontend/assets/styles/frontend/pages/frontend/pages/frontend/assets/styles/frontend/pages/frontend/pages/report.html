@@ -1,0 +1,28 @@
+<div class="report-container">
+  <h1>รายงานระบบ</h1>
+  <section class="report-filters">
+    <label for="dateRange">ช่วงวันที่:</label>
+    <input type="date" id="startDate">
+    <span>ถึง</span>
+    <input type="date" id="endDate">
+    <label for="actionType">ประเภทกิจกรรม:</label>
+    <select id="actionType">
+      <option value="">ทั้งหมด</option>
+      <option value="login">Login</option>
+      <option value="update">แก้ไขข้อมูล</option>
+      <option value="reset">รีเซ็ตรหัสผ่าน</option>
+    </select>
+    <button>ดูรายงาน</button>
+  </section>
+  <table class="report-table">
+    <thead>
+      <tr>
+        <th>เวลา</th>
+        <th>ผู้ใช้</th>
+        <th>กิจกรรม</th>
+        <th>รายละเอียด</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
