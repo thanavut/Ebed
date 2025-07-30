@@ -1,0 +1,35 @@
+.report-container {
+  max-width: 960px;
+  margin: 40px auto;
+  font-family: 'Kanit', sans-serif;
+}
+
+.report-filters {
+  background: #f7f4f0;
+  border: 1px solid #ccc;
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  border-radius: 6px;
+}
+
+.report-table {
+  margin-top: 20px;
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border: 1px solid #ddd;
+}
+
+.report-table th {
+  background: #dbe3f2;
+  padding: 12px;
+  text-align: left;
+}
+
+.report-table td {
+  padding: 10px;
+  border-top: 1px solid #eee;
+}
