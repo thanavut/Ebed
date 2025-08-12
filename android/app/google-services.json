@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1074273212598",
+    "project_id": "ebed-cb211",
+    "storage_bucket": "ebed-cb211.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1074273212598:android:0ed56e3a7b19cfb0976e17",
+        "android_client_info": {
+          "package_name": "com.example.ebed"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-4qU9f8i3lzvWKZ6CR-gGJFh4G-qz8sg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
