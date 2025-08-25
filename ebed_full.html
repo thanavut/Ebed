@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EBED — Enterprise Management (Single-file)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    :root{
+      --primary: #2E7D32; --primary-2:#4CAF50; --primary-3:#1B5E20;
+      --bg:#FAFAFA; --card:#FFFFFF; --text:#212121; --muted:#757575; --line:#E0E0E0;
+      --success:#4CAF50; --warn:#FF9800; --error:#E53935; --info:#1976D2;
+      --radius:14px; --shadow:0 8px 24px rgba(0,0,0,.08);
+    }
+    [data-theme="dark"]{ --bg:#111315; --card:#171A1C; --text:#EAECEE; --muted:#A0A6AD; --line:#2B2F33; }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:'Sarabun', 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;background:var(--bg);color:var(--text)}
+    a{color:inherit}
+    .hidden{display:none!important}
+    .app{display:flex;min-height:100vh}
+    .sidebar{width:260px;border-right:1px solid var(--line);background:var(--card);padding:16px;position:sticky;top:0;height:100vh}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700;margin:4px 0 16px}
+    .brand i{color:var(--primary)}
+    .nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:var(--text);text-decoration:none}
+    .nav a.active,.nav a:hover{background:rgba(46,125,50,.12)}
+    .content{flex:1;min-width:0}
+    .header{position:sticky;top:0;z-index:10;backdrop-filter:saturate(120%) blur(6px);background:color-mix(in oklab,var(--bg) 70%, transparent);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:10px 16px}
+    .search{flex:1;display:flex;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 12px}
+    .search input{flex:1;border:none;background:transparent;outline:none;color:var(--text)}
+    .toolbar{display:flex;align-items:center;gap:8px}
+    .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--card);color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer}
+    .btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+    .btn.ghost{background:transparent}
+    .btn.icon{padding:8px;border-radius:12px;width:40px;height:40px;justify-content:center}
+    .container{padding:20px;max-width:1200px;margin:0 auto}
+    .grid{display:grid;gap:16px}
+    .cards{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .card .body{padding:16px}
+    .h1{font-size:22px;font-weight:700;margin:0 0 8px}
+    .muted{color:var(--muted)}
+    .table{width:100%;border-collapse:collapse}
+    .table th,.table td{border-bottom:1px solid var(--line);padding:10px;text-align:left}
+    .table th{color:var(--muted);font-weight:600;background:color-mix(in oklab,var(--card) 80%, var(--bg))}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .field{display:flex;flex-direction:column;gap:6px;min-width:140px}
+    .field input,.field select,.field textarea{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:10px;padding:10px;outline:none}
+    .pill{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid var(--line);gap:8px}
+    .right{margin-left:auto}
+    .center{text-align:center}
+    .danger{color:#e74c3c}
+    .success{color:#1abc9c}
+    .footer-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px;border-top:1px solid var(--line);background:color-mix(in oklab,var(--card) 85%, var(--bg));border-radius:0 0 var(--radius) var(--radius)}
+    /* Auth */
+    .auth-wrap{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#1B5E20, #4CAF50)}
+    .auth-card{width:min(860px,92vw);display:grid;grid-template-columns:1.1fr .9fr;background:#fff;border-radius:22px;overflow:hidden}
+    [data-theme="dark"] .auth-card{background:#0f1214;color:var(--text)}
+    .auth-side{padding:26px 26px 8px;border-right:1px solid var(--line)}
+    .auth-form{padding:26px}
+    .logo-badge{display:flex;align-items:center;gap:10px;font-weight:800;color:#fff}
+    .logo-badge i{font-size:22px}
+    .sso{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+    .sso .btn{justify-content:center}
+    .lang-toggle{position:absolute;top:12px;right:12px}
+    .switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+    .switch input{appearance:none;width:36px;height:22px;border-radius:999px;background:var(--line);position:relative;outline:none}
+    .switch input:checked{background:var(--primary)}
+    .switch input::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.2s}
+    .switch input:checked::after{left:17px}
+    @media(max-width:900px){.sidebar{position:fixed;left:-270px;transition:.2s}.sidebar.open{left:0}.content{padding-left:0}.auth-card{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div id="app-root"></div>
+
+<script>
+/* ===================== UTILITIES ===================== */
+const $ = (sel, el=document) => el.querySelector(sel);
+const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
+const t = (k)=>I18N.t(k);
+const uid = (p='id')=> p+"_"+Math.random().toString(36).slice(2,10);
+const fmtTHB = n=> new Intl.NumberFormat(I18N.lang==='th'?'th-TH':'en-US',{style:'currency',currency:'THB',minimumFractionDigits:2}).format(Number(n||0));
+const todayISO = ()=> new Date().toISOString().slice(0,10);
+
+/* ===================== I18N ===================== */
+const I18N = {
+  lang: localStorage.getItem('ebed.lang')||'th',
+  dict:{
+    th:{
+      app:'EBED', login:'เข้าสู่ระบบ', email:'อีเมล', password:'รหัสผ่าน', remember:'จดจำฉัน', forgot:'ลืมรหัสผ่าน',
+      or:'หรือ', register:'สมัครสมาชิก', fullname:'ชื่อ-นามสกุล', confirm:'ยืนยันรหัสผ่าน', role:'สิทธิ์', agree:'ยอมรับเงื่อนไข',
+      haveAccount:'มีบัญชีแล้ว', toLogin:'ไปหน้าเข้าสู่ระบบ', dashboard:'หน้าหลัก', expenses:'รายรับรายจ่าย', persons:'ทะเบียนประวัติ', assets:'ครุภัณฑ์', analytics:'วิเคราะห์ข้อมูล', reports:'รายงาน', settings:'ตั้งค่า',
+      logout:'ออกจากระบบ', dark:'โหมดมืด', light:'โหมดสว่าง', language:'ภาษา', thai:'ไทย', english:'English',
+      search:'ค้นหา', filter:'กรอง', add:'เพิ่ม', save:'บันทึก', cancel:'ยกเลิก', actions:'การทำงาน', export:'ส่งออก CSV', edit:'แก้ไข', del:'ลบ',
+      totalMonth:'รวมเดือนนี้', totalToday:'รวมวันนี้', budgetLeft:'งบคงเหลือ', avgDay:'เฉลี่ย/วัน',
+      welcome:'สวัสดี', quick:'การดำเนินการด่วน', addExpense:'เพิ่มรายจ่าย', addPerson:'เพิ่มบุคคล', addAsset:'เพิ่มครุภัณฑ์',
+      stats:'สถิติ', recent:'กิจกรรมล่าสุด', system:'สถานะระบบ',
+      amount:'จำนวนเงิน', date:'วันที่', category:'หมวดหมู่', detail:'รายละเอียด', pay:'ช่องทางจ่าย', method:'วิธี',
+      cash:'เงินสด', transfer:'โอน', credit:'บัตรเครดิต', cheque:'เช็ค',
+      name:'ชื่อ-นามสกุล', gender:'เพศ', male:'ชาย', female:'หญิง', baptized:'รับบัพติศมา', notBaptized:'ยังไม่ได้รับ',
+      code:'รหัส', condition:'สภาพ', good:'ดี', fair:'พอใช้', needRepair:'ต้องซ่อม',
+      apply:'ตกลง'
+    },
+    en:{
+      app:'EBED', login:'Login', email:'Email', password:'Password', remember:'Remember me', forgot:'Forgot password?',
+      or:'or', register:'Register', fullname:'Full name', confirm:'Confirm password', role:'Role', agree:'Accept terms',
+      haveAccount:'Already have an account?', toLogin:'Back to Login', dashboard:'Dashboard', expenses:'Expenses', persons:'Persons', assets:'Assets', analytics:'Analytics', reports:'Reports', settings:'Settings',
+      logout:'Logout', dark:'Dark', light:'Light', language:'Language', thai:'ไทย', english:'English',
+      search:'Search', filter:'Filter', add:'Add', save:'Save', cancel:'Cancel', actions:'Actions', export:'Export CSV', edit:'Edit', del:'Delete',
+      totalMonth:'This Month', totalToday:'Today', budgetLeft:'Budget Left', avgDay:'Avg/Day',
+      welcome:'Welcome', quick:'Quick actions', addExpense:'Add Expense', addPerson:'Add Person', addAsset:'Add Asset',
+      stats:'Statistics', recent:'Recent Activity', system:'System',
+      amount:'Amount', date:'Date', category:'Category', detail:'Details', pay:'Payment', method:'Method',
+      cash:'Cash', transfer:'Transfer', credit:'Credit Card', cheque:'Cheque',
+      name:'Full name', gender:'Gender', male:'Male', female:'Female', baptized:'Baptized', notBaptized:'Not Baptized',
+      code:'Code', condition:'Condition', good:'Good', fair:'Fair', needRepair:'Need Repair',
+      apply:'Apply'
+    }
+  },
+  t(k){return (this.dict[this.lang]||{})[k]||k},
+  set(lang){this.lang=lang;localStorage.setItem('ebed.lang',lang);renderApp();}
+};
+
+/* ===================== THEME ===================== */
+const Theme = {
+  init(){document.documentElement.setAttribute('data-theme', localStorage.getItem('ebed.theme')||'light')},
+  toggle(){const nv = document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';document.documentElement.setAttribute('data-theme', nv);localStorage.setItem('ebed.theme', nv)}
+};
+Theme.init();
+
+/* ===================== DB (IndexedDB) ===================== */
+const DB = {
+  db:null,
+  init(){return new Promise((resolve,reject)=>{
+    const req = indexedDB.open('EBED_DB',1);
+    req.onupgradeneeded = e=>{
+      const db=e.target.result;
+      if(!db.objectStoreNames.contains('users')){db.createObjectStore('users',{keyPath:'email'});}
+      if(!db.objectStoreNames.contains('expenses')){const s=db.createObjectStore('expenses',{keyPath:'id'});s.createIndex('date','date');}
+      if(!db.objectStoreNames.contains('persons')){db.createObjectStore('persons',{keyPath:'id'});}
+      if(!db.objectStoreNames.contains('assets')){db.createObjectStore('assets',{keyPath:'id'});}
+      if(!db.objectStoreNames.contains('activity')){db.createObjectStore('activity',{keyPath:'id'});}
+    };
+    req.onsuccess=()=>{DB.db=req.result;resolve()};
+    req.onerror=()=>reject(req.error);
+  })},
+  tx(name,mode='readonly'){return DB.db.transaction(name,mode).objectStore(name)},
+  put(store,obj){return new Promise((res,rej)=>{const r=DB.tx(store,'readwrite').put(obj);r.onsuccess=()=>res(obj);r.onerror=()=>rej(r.error)})},
+  add(store,obj){return new Promise((res,rej)=>{const r=DB.tx(store,'readwrite').add(obj);r.onsuccess=()=>res(obj);r.onerror=()=>rej(r.error)})},
+  get(store,key){return new Promise((res,rej)=>{const r=DB.tx(store).get(key);r.onsuccess=e=>res(e.target.result);r.onerror=()=>rej(r.error)})},
+  all(store){return new Promise((res)=>{const out=[];DB.tx(store).openCursor().onsuccess=e=>{const c=e.target.result;if(c){out.push(c.value);c.continue()}else res(out)}})},
+  del(store,key){return new Promise((res)=>{DB.tx(store,'readwrite').delete(key).onsuccess=()=>res(true)})}
+};
+
+/* ===================== SESSION ===================== */
+const Session = {
+  get(){const s=localStorage.getItem('ebed.session');return s?JSON.parse(s):null},
+  set(user){localStorage.setItem('ebed.session',JSON.stringify({email:user.email,name:user.name,role:user.role||'user'}))},
+  clear(){localStorage.removeItem('ebed.session')}
+}
+
+/* ===================== ACTIVITY LOG ===================== */
+async function logActivity(type, message){
+  const entry={id:uid('act'), ts:Date.now(), type, message};
+  await DB.put('activity',entry);
+}
+
+/* ===================== AUTH UI ===================== */
+function viewAuth(route){
+  const isLogin = route==='#/login' || route==='#/' || !route;
+  const root = document.getElementById('app-root');
+  root.innerHTML = `
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-side" style="background:linear-gradient(135deg,#1B5E20,#4CAF50);color:#fff;position:relative">
+        <div class="logo-badge"><i class="fa-solid fa-leaf"></i><span>EBED</span></div>
+        <div style="margin-top:80px">
+          <h2 style="margin:0 0 10px">${t('app')}</h2>
+          <p class="muted" style="color:#E8F5E9">Enterprise Management single-file app</p>
+        </div>
+        <div class="lang-toggle">
+          <div class="btn icon" onclick="I18N.set('th')">ไทย</div>
+          <div class="btn icon" onclick="I18N.set('en')">EN</div>
+          <div class="btn icon" title="Dark" onclick="Theme.toggle()"><i class="fa-solid fa-moon"></i></div>
+        </div>
+        <div style="position:absolute;bottom:16px;left:16px;right:16px;opacity:.9;font-size:12px">© EBED</div>
+      </div>
+      <div class="auth-form">
+        ${isLogin? authLoginForm(): authRegisterForm()}
+      </div>
+    </div>
+  </div>`;
+  attachAuthHandlers(isLogin);
+}
+
+function authLoginForm(){
+  return `
+  <h2 class="h1">${t('login')}</h2>
+  <form id="loginForm" class="grid">
+    <div class="field"><label>${t('email')}</label><input required type="email" name="email" /></div>
+    <div class="field"><label>${t('password')}</label><input required type="password" name="password" /></div>
+    <label class="switch"><input type="checkbox" name="remember"/> <span>${t('remember')}</span></label>
+    <div class="row">
+      <button class="btn primary" type="submit"><i class="fa-solid fa-right-to-bracket"></i> ${t('login')}</button>
+      <button class="btn" type="button" onclick="location.hash='#/register'">${t('register')}</button>
+      <span class="right"><a href="#/forgot">${t('forgot')}</a></span>
+    </div>
+    <div class="muted center">${t('or')}</div>
+    <div class="sso">
+      <button class="btn" type="button" data-sso="google"><i class="fa-brands fa-google"></i> Google</button>
+      <button class="btn" type="button" data-sso="apple"><i class="fa-brands fa-apple"></i> Apple</button>
+      <button class="btn" type="button" data-sso="line"><i class="fa-brands fa-line"></i> Line</button>
+      <button class="btn" type="button" data-sso="facebook"><i class="fa-brands fa-facebook"></i> Facebook</button>
+    </div>
+  </form>`
+}
+
+function authRegisterForm(){
+  return `
+  <h2 class="h1">${t('register')}</h2>
+  <form id="regForm" class="grid">
+    <div class="field"><label>${t('fullname')}</label><input required name="name"/></div>
+    <div class="field"><label>${t('email')}</label><input required type="email" name="email"/></div>
+    <div class="field"><label>${t('password')}</label><input required type="password" name="password"/></div>
+    <div class="field"><label>${t('confirm')}</label><input required type="password" name="confirm"/></div>
+    <div class="field"><label>${t('role')}</label>
+      <select name="role"><option value="user">User</option><option value="admin">Admin</option></select>
+    </div>
+    <label class="switch"><input type="checkbox" name="agree" required/> <span>${t('agree')}</span></label>
+    <div class="row">
+      <button class="btn primary" type="submit"><i class="fa-solid fa-user-plus"></i> ${t('register')}</button>
+      <a class="btn" href="#/login">${t('toLogin')}</a>
+    </div>
+  </form>`
+}
+
+function attachAuthHandlers(isLogin){
+  if(isLogin){
+    const f=$('#loginForm');
+    f.onsubmit= async (e)=>{
+      e.preventDefault();
+      const email=f.email.value.trim().toLowerCase();
+      const pass=f.password.value;
+      const u = await DB.get('users', email);
+      if(!u||u.password!==pass){alert('อีเมลหรือรหัสผ่านไม่ถูกต้อง');return}
+      Session.set(u); await logActivity('login', 'User login');
+      location.hash='#/dashboard';
+    };
+    $$('.sso .btn').forEach(btn=>{
+      btn.onclick= async ()=>{
+        const provider = btn.dataset.sso;
+        // Simulate SSO success with deterministic email
+        const email = provider+"_user@example.com";
+        let u = await DB.get('users', email);
+        if(!u){u={email:email, name:provider.toUpperCase()+" User", password:'', role:'user'}; await DB.put('users',u)}
+        Session.set(u); await logActivity('login', 'SSO '+provider);
+        location.hash='#/dashboard';
+      }
+    })
+  } else {
+    const f=$('#regForm');
+    f.onsubmit= async (e)=>{
+      e.preventDefault();
+      if(f.password.value!==f.confirm.value){alert('รหัสผ่านไม่ตรงกัน');return}
+      const user={email:f.email.value.trim().toLowerCase(), name:f.name.value.trim(), password:f.password.value, role:f.role.value};
+      if(!user.email){alert('กรุณากรอกอีเมล');return}
+      const exist = await DB.get('users', user.email);
+      if(exist){alert('อีเมลนี้ถูกใช้แล้ว');return}
+      await DB.put('users',user);
+      await logActivity('user','Register '+user.email);
+      alert('สมัครสมาชิกสำเร็จ');
+      location.hash='#/login';
+    }
+  }
+}
+
+/* ===================== APP SHELL ===================== */
+function appShell(view){
+  const s=Session.get(); if(!s){viewAuth('#/login');return}
+  const route = location.hash || '#/dashboard';
+  const navs=[
+    {id:'dashboard',icon:'fa-gauge', hash:'#/dashboard', label:t('dashboard')},
+    {id:'expenses', icon:'fa-wallet', hash:'#/expenses', label:t('expenses')},
+    {id:'persons', icon:'fa-users', hash:'#/persons', label:t('persons')},
+    {id:'assets', icon:'fa-boxes-stacked', hash:'#/assets', label:t('assets')},
+    {id:'analytics', icon:'fa-chart-line', hash:'#/analytics', label:t('analytics')},
+    {id:'reports', icon:'fa-file-lines', hash:'#/reports', label:t('reports')},
+    {id:'settings', icon:'fa-gear', hash:'#/settings', label:t('settings')},
+  ];
+  document.getElementById('app-root').innerHTML = `
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand"><i class="fa-solid fa-leaf"></i> <span>EBED</span></div>
+      <nav class="nav">
+        ${navs.map(n=>`<a href="${n.hash}" class="${route.startsWith(n.hash)?'active':''}"><i class="fa-solid ${n.icon}"></i><span>${n.label}</span></a>`).join('')}
+      </nav>
+      <div style="position:absolute;bottom:12px;left:16px;right:16px;display:flex;gap:8px;align-items:center">
+        <button class="btn icon" title="Theme" onclick="Theme.toggle()"><i class="fa-solid fa-circle-half-stroke"></i></button>
+        <button class="btn" onclick="I18N.set(I18N.lang==='th'?'en':'th')">${t('language')}: ${I18N.lang==='th'?t('thai'):t('english')}</button>
+        <button class="btn" onclick="Session.clear(); location.hash='#/login'"><i class="fa-solid fa-arrow-right-from-bracket"></i> ${t('logout')}</button>
+      </div>
+    </aside>
+    <main class="content">
+      <div class="header">
+        <button class="btn icon" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fa-solid fa-bars"></i></button>
+        <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input id="globalSearch" placeholder="${t('search')}"/></div>
+        <div class="toolbar">
+          <button class="btn icon" title="Theme" onclick="Theme.toggle()"><i class="fa-solid fa-moon"></i></button>
+          <button class="btn icon" title="Language" onclick="I18N.set(I18N.lang==='th'?'en':'th')"><i class="fa-solid fa-language"></i></button>
+          <div class="pill"><i class="fa-solid fa-user"></i> ${s.name||s.email}</div>
+        </div>
+      </div>
+      <div class="container" id="view"></div>
+    </main>
+  </div>`;
+  $('#globalSearch').addEventListener('input', e=>{state.search=e.target.value.toLowerCase(); renderRoute()});
+  renderRoute();
+}
+
+/* ===================== STATE ===================== */
+const state = { search:'', charts:{}, expFilter:null };
+
+/* ===================== ROUTER ===================== */
+window.addEventListener('hashchange',()=>renderApp());
+
+function renderRoute(){
+  const h=location.hash||'#/dashboard';
+  const v=$('#view');
+  if(h.startsWith('#/dashboard')) return viewDashboard(v);
+  if(h.startsWith('#/expenses')) return viewExpenses(v);
+  if(h.startsWith('#/persons')) return viewPersons(v);
+  if(h.startsWith('#/assets')) return viewAssets(v);
+  if(h.startsWith('#/analytics')) return viewAnalytics(v);
+  if(h.startsWith('#/reports')) return viewReports(v);
+  if(h.startsWith('#/settings')) return viewSettings(v);
+}
+
+/* ===================== DASHBOARD ===================== */
+async function viewDashboard(v){
+  const [exps, persons, assets, acts] = await Promise.all([
+    DB.all('expenses'), DB.all('persons'), DB.all('assets'), DB.all('activity')
+  ]);
+  const month = new Date().toISOString().slice(0,7);
+  const monthTotal = exps.filter(e=> (e.date||'').startsWith(month)).reduce((a,b)=>a+Number(b.amount||0),0);
+  const todayTotal = exps.filter(e=> (e.date||'')===todayISO()).reduce((a,b)=>a+Number(b.amount||0),0);
+  v.innerHTML = `
+    <h2 class="h1">${t('dashboard')}</h2>
+    <div class="grid cards">
+      <div class="card"><div class="body"><div class="muted">${t('totalMonth')}</div><div style="font-size:22px;font-weight:700">${fmtTHB(monthTotal)}</div></div></div>
+      <div class="card"><div class="body"><div class="muted">${t('totalToday')}</div><div style="font-size:22px;font-weight:700">${fmtTHB(todayTotal)}</div></div></div>
+      <div class="card"><div class="body"><div class="muted">${t('persons')}</div><div style="font-size:22px;font-weight:700">${persons.length}</div></div></div>
+      <div class="card"><div class="body"><div class="muted">${t('assets')}</div><div style="font-size:22px;font-weight:700">${assets.length}</div></div></div>
+    </div>
+
+    <div class="grid" style="margin-top:16px;grid-template-columns:2.2fr 1fr;gap:16px">
+      <div class="card"><div class="body"><canvas id="chart-exp"></canvas></div></div>
+      <div class="card"><div class="body"><div class="row"><button class="btn primary" onclick="location.hash='#/expenses'"><i class="fa-solid fa-plus"></i> ${t('addExpense')}</button><button class="btn" onclick="location.hash='#/persons'">${t('addPerson')}</button><button class="btn" onclick="location.hash='#/assets'">${t('addAsset')}</button></div></div></div>
+    </div>
+
+    <div class="grid" style="margin-top:16px;grid-template-columns:1.4fr 1fr;gap:16px">
+      <div class="card"><div class="body"><h3 class="h1" style="font-size:18px">${t('recent')}</h3>
+        <div id="act-list">${acts.sort((a,b)=>b.ts-a.ts).slice(0,10).map(a=>`<div class='row' style='justify-content:space-between'><div>${new Date(a.ts).toLocaleString()} — ${a.type}</div><div class='muted'>${a.message||''}</div></div>`).join('')||'<div class="muted">No activity</div>'}</div>
+      </div></div>
+      <div class="card"><div class="body"><canvas id="chart-cat"></canvas></div></div>
+    </div>
+  `;
+  // charts
+  const months = [...Array(12)].map((_,i)=>{const d=new Date();d.setMonth(d.getMonth()-11+i);return d.toISOString().slice(0,7)});
+  const series = months.map(m=> exps.filter(e=> (e.date||'').startsWith(m)).reduce((a,b)=>a+Number(b.amount||0),0));
+  const cats = Object.entries(exps.reduce((acc,e)=>{acc[e.category||'อื่นๆ']=(acc[e.category||'อื่นๆ']||0)+Number(e.amount||0);return acc},{}));
+  drawChart('chart-exp','line', {labels:months, datasets:[{label:'THB', data:series, tension:.3, fill:false}]});
+  drawChart('chart-cat','doughnut', {labels:cats.map(c=>c[0]), datasets:[{data:cats.map(c=>c[1])}]});
+}
+
+function drawChart(id,type,data){
+  const ctx=document.getElementById(id);
+  if(state.charts[id]){state.charts[id].destroy()}
+  state.charts[id]= new Chart(ctx,{type,data,options:{responsive:true,plugins:{legend:{display:true}}}})
+}
+
+/* ===================== EXPENSES ===================== */
+async function viewExpenses(v){
+  const all = await DB.all('expenses');
+  const q = state.search;
+  const f = state.expFilter||{};
+  const list = all
+    .filter(e=> JSON.stringify(e).toLowerCase().includes(q))
+    .filter(e=>{
+      if(f?.date && (e.date||'')!==f.date) return false;
+      if(f?.cat && (e.category||'')!==f.cat) return false;
+      if(f?.pay && (e.pay||'')!==f.pay) return false;
+      return true;
+    });
+  const sumMonth = list.filter(e=> (e.date||'').slice(0,7)===new Date().toISOString().slice(0,7)).reduce((a,b)=>a+Number(b.amount||0),0);
+  v.innerHTML = `
+    <div class="row" style="align-items:center;justify-content:space-between">
+      <h2 class="h1">${t('expenses')}</h2>
+      <div class="row">
+        <button class="btn" onclick="exportCSV('expenses')"><i class="fa-solid fa-file-export"></i> ${t('export')}</button>
+        <button class="btn primary" onclick="openExpenseForm()"><i class="fa-solid fa-plus"></i> ${t('add')}</button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field"><label>${t('date')}</label><input type="date" id="fltDate"></div>
+      <div class="field"><label>${t('category')}</label>
+        <select id="fltCat"><option value="">All</option><option>อาหาร</option><option>เดินทาง</option><option>สาธารณูปโภค</option><option>อื่นๆ</option></select>
+      </div>
+      <div class="field"><label>${t('method')}</label>
+        <select id="fltPay"><option value="">All</option><option>${t('cash')}</option><option>${t('transfer')}</option><option>${t('credit')}</option><option>${t('cheque')}</option></select>
+      </div>
+      <button class="btn" onclick="applyExpenseFilter()">${t('apply')}</button>
+    </div>
+
+    <div class="grid cards" style="margin:12px 0">
+      <div class="card"><div class="body"><div class="muted">${t('totalMonth')}</div><div style="font-size:20px;font-weight:700">${fmtTHB(sumMonth)}</div></div></div>
+    </div>
+
+    <div class="card"><div class="body" style="overflow:auto">
+      <table class="table" id="expTable">
+        <thead><tr><th>${t('date')}</th><th>${t('category')}</th><th>${t('detail')}</th><th>${t('amount')}</th><th>${t('pay')}</th><th>${t('actions')}</th></tr></thead>
+        <tbody>
+          ${list.sort((a,b)=> (b.date||'').localeCompare(a.date||'')).map(e=>
+            `<tr>
+              <td>${e.date||''}</td>
+              <td>${e.category||''}</td>
+              <td>${e.note||''}</td>
+              <td>${fmtTHB(e.amount)}</td>
+              <td>${e.pay||''}</td>
+              <td>
+                <button class="btn" onclick="openExpenseForm('${e.id}')">${t('edit')}</button>
+                <button class="btn danger" onclick="delExpense('${e.id}')">${t('del')}</button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div></div>
+  `;
+}
+
+function applyExpenseFilter(){
+  state.expFilter={date:$('#fltDate').value,cat:$('#fltCat').value,pay:$('#fltPay').value};
+  renderRoute();
+}
+
+async function openExpenseForm(id){
+  const rec = id? await DB.get('expenses', id): {id:uid('exp'), date:todayISO(), category:'อื่นๆ', amount:0, note:'', pay:t('cash')};
+  const modal = document.createElement('div');
+  modal.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,.4);display:grid;place-items:center;z-index:50">
+      <div class="card" style="width:min(720px,96vw);max-height:90vh;overflow:auto">
+        <div class="body">
+          <h3 class="h1" style="font-size:18px">${id?t('edit'):t('addExpense')}</h3>
+          <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+            <div class="field"><label>${t('date')}</label><input id="fdate" type="date" value="${rec.date||''}"></div>
+            <div class="field"><label>${t('category')}</label>
+              <select id="fcat"><option>อาหาร</option><option>เดินทาง</option><option>สาธารณูปโภค</option><option ${rec.category==='อื่นๆ'?'selected':''}>อื่นๆ</option></select>
+            </div>
+            <div class="field"><label>${t('amount')}</label><input id="famt" type="number" step="0.01" value="${rec.amount}"></div>
+            <div class="field"><label>${t('pay')}</label>
+              <select id="fpay"><option>${t('cash')}</option><option>${t('transfer')}</option><option>${t('credit')}</option><option>${t('cheque')}</option></select>
+            </div>
+            <div class="field" style="grid-column:1/-1"><label>${t('detail')}</label><textarea id="fnote">${rec.note||''}</textarea></div>
+          </div>
+        </div>
+        <div class="footer-actions">
+          <button class="btn" id="cancel">${t('cancel')}</button>
+          <button class="btn primary" id="save">${t('save')}</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  $('#cancel', modal).onclick=()=>modal.remove();
+  $('#save', modal).onclick= async ()=>{
+    const obj={id:rec.id, date:$('#fdate',modal).value, category:$('#fcat',modal).value, amount:Number($('#famt',modal).value||0), pay:$('#fpay',modal).value, note:$('#fnote',modal).value};
+    await DB.put('expenses', obj); await logActivity('expense', (id?'Update':'Create')+': '+obj.category+' '+obj.amount);
+    modal.remove(); renderRoute();
+  }
+}
+
+async function delExpense(id){ if(confirm('Delete?')){ await DB.del('expenses',id); await logActivity('expense','Delete '+id); renderRoute(); } }
+
+/* ===================== PERSONS ===================== */
+async function viewPersons(v){
+  const list = (await DB.all('persons')).filter(e=> JSON.stringify(e).toLowerCase().includes(state.search));
+  v.innerHTML = `
+    <div class="row" style="align-items:center;justify-content:space-between">
+      <h2 class="h1">${t('persons')}</h2>
+      <div class="row">
+        <button class="btn" onclick="exportCSV('persons')"><i class="fa-solid fa-file-export"></i> ${t('export')}</button>
+        <button class="btn primary" onclick="openPersonForm()"><i class="fa-solid fa-plus"></i> ${t('add')}</button>
+      </div>
+    </div>
+    <div class="card"><div class="body" style="overflow:auto">
+      <table class="table">
+        <thead><tr><th>${t('name')}</th><th>${t('gender')}</th><th>Email</th><th>Phone</th><th>${t('actions')}</th></tr></thead>
+        <tbody>
+          ${list.map(p=>`<tr><td>${p.name||''}</td><td>${p.gender||''}</td><td>${p.email||''}</td><td>${p.phone||''}</td>
+          <td><button class="btn" onclick="openPersonForm('${p.id}')">${t('edit')}</button> <button class="btn danger" onclick="delPerson('${p.id}')">${t('del')}</button></td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div></div>`
+}
+
+async function openPersonForm(id){
+  const rec = id? await DB.get('persons', id): {id:uid('per'), name:'', gender:t('male'), email:'', phone:'', baptized:false};
+  const modal = document.createElement('div');
+  modal.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.4);display:grid;place-items:center;z-index:50">
+   <div class="card" style="width:min(720px,96vw)"><div class="body">
+    <h3 class="h1" style="font-size:18px">${id?t('edit'):t('addPerson')}</h3>
+    <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+      <div class="field"><label>${t('name')}</label><input id="pname" value="${rec.name}"></div>
+      <div class="field"><label>${t('gender')}</label><select id="pgender"><option ${rec.gender===t('male')?'selected':''}>${t('male')}</option><option ${rec.gender===t('female')?'selected':''}>${t('female')}</option></select></div>
+      <div class="field"><label>Email</label><input id="pemail" value="${rec.email||''}"></div>
+      <div class="field"><label>Phone</label><input id="pphone" value="${rec.phone||''}"></div>
+      <label class="switch"><input type="checkbox" id="pbap" ${rec.baptized?'checked':''}/> <span>${t('baptized')}</span></label>
+    </div>
+   </div>
+   <div class="footer-actions"><button class="btn" id="cancel">${t('cancel')}</button><button class="btn primary" id="save">${t('save')}</button></div>
+  </div></div>`;
+  document.body.appendChild(modal);
+  $('#cancel',modal).onclick=()=>modal.remove();
+  $('#save',modal).onclick= async ()=>{
+    const obj={id:rec.id, name:$('#pname',modal).value, gender:$('#pgender',modal).value, email:$('#pemail',modal).value, phone:$('#pphone',modal).value, baptized:$('#pbap',modal).checked};
+    await DB.put('persons', obj); await logActivity('person', (id?'Update':'Create')+': '+obj.name);
+    modal.remove(); renderRoute();
+  }
+}
+
+async function delPerson(id){ if(confirm('Delete?')){ await DB.del('persons',id); await logActivity('person','Delete '+id); renderRoute(); } }
+
+/* ===================== ASSETS ===================== */
+async function viewAssets(v){
+  const list = (await DB.all('assets')).filter(e=> JSON.stringify(e).toLowerCase().includes(state.search));
+  v.innerHTML = `
+    <div class="row" style="align-items:center;justify-content:space-between">
+      <h2 class="h1">${t('assets')}</h2>
+      <div class="row">
+        <button class="btn" onclick="exportCSV('assets')"><i class="fa-solid fa-file-export"></i> ${t('export')}</button>
+        <button class="btn primary" onclick="openAssetForm()"><i class="fa-solid fa-plus"></i> ${t('add')}</button>
+      </div>
+    </div>
+    <div class="card"><div class="body" style="overflow:auto">
+      <table class="table">
+        <thead><tr><th>${t('name')}</th><th>${t('code')}</th><th>${t('condition')}</th><th>${t('actions')}</th></tr></thead>
+        <tbody>
+          ${list.map(a=>`<tr><td>${a.name||''}</td><td>${a.code||''}</td><td>${a.condition||''}</td>
+          <td><button class="btn" onclick="openAssetForm('${a.id}')">${t('edit')}</button> <button class="btn danger" onclick="delAsset('${a.id}')">${t('del')}</button></td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div></div>`
+}
+
+async function openAssetForm(id){
+  const rec = id? await DB.get('assets', id): {id:uid('ast'), name:'', code:('AST'+Math.random().toString(36).slice(2,6)).toUpperCase(), condition:t('good')};
+  const modal = document.createElement('div');
+  modal.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.4);display:grid;place-items:center;z-index:50">
+   <div class="card" style="width:min(720px,96vw)"><div class="body">
+    <h3 class="h1" style="font-size:18px">${id?t('edit'):t('addAsset')}</h3>
+    <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+      <div class="field"><label>${t('name')}</label><input id="aname" value="${rec.name}"></div>
+      <div class="field"><label>${t('code')}</label><input id="acode" value="${rec.code}"></div>
+      <div class="field"><label>${t('condition')}</label><select id="acond"><option ${rec.condition===t('good')?'selected':''}>${t('good')}</option><option ${rec.condition===t('fair')?'selected':''}>${t('fair')}</option><option ${rec.condition===t('needRepair')?'selected':''}>${t('needRepair')}</option></select></div>
+    </div>
+   </div>
+   <div class="footer-actions"><button class="btn" id="cancel">${t('cancel')}</button><button class="btn primary" id="save">${t('save')}</button></div>
+  </div></div>`;
+  document.body.appendChild(modal);
+  $('#cancel',modal).onclick=()=>modal.remove();
+  $('#save',modal).onclick= async ()=>{
+    const obj={id:rec.id, name:$('#aname',modal).value, code:$('#acode',modal).value, condition:$('#acond',modal).value};
+    await DB.put('assets', obj); await logActivity('asset', (id?'Update':'Create')+': '+obj.name);
+    modal.remove(); renderRoute();
+  }
+}
+
+async function delAsset(id){ if(confirm('Delete?')){ await DB.del('assets',id); await logActivity('asset','Delete '+id); renderRoute(); } }
+
+/* ===================== ANALYTICS ===================== */
+async function viewAnalytics(v){
+  const exps = await DB.all('expenses');
+  const byPay = exps.reduce((a,e)=>{a[e.pay]= (a[e.pay]||0)+Number(e.amount||0);return a},{ })
+  v.innerHTML = `
+    <h2 class="h1">${t('analytics')}</h2>
+    <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+      <div class="card"><div class="body"><canvas id="ana1"></canvas></div></div>
+      <div class="card"><div class="body"><canvas id="ana2"></canvas></div></div>
+    </div>`;
+  const mlabels=[...Array(12)].map((_,i)=>{const d=new Date();d.setMonth(d.getMonth()-11+i);return d.toLocaleString(I18N.lang==='th'?'th-TH':'en-US',{month:'short'})});
+  const series=[...Array(12)].map((_,i)=>{const d=new Date();d.setMonth(d.getMonth()-11+i);const m=d.toISOString().slice(0,7);return exps.filter(e=>(e.date||'').startsWith(m)).reduce((s,x)=>s+Number(x.amount||0),0)});
+  drawChart('ana1','line',{labels:mlabels,datasets:[{label:'Expense',data:series,tension:.3}]});
+  drawChart('ana2','bar',{labels:Object.keys(byPay||{}),datasets:[{label:'THB',data:Object.values(byPay||{})}]});
+}
+
+/* ===================== REPORTS ===================== */
+async function viewReports(v){
+  v.innerHTML = `
+    <h2 class="h1">${t('reports')}</h2>
+    <div class="grid cards">
+      <div class="card"><div class="body"><div class="muted">${t('expenses')}</div><button class="btn" onclick="exportCSV('expenses')">${t('export')}</button></div></div>
+      <div class="card"><div class="body"><div class="muted">${t('persons')}</div><button class="btn" onclick="exportCSV('persons')">${t('export')}</button></div></div>
+      <div class="card"><div class="body"><div class="muted">${t('assets')}</div><button class="btn" onclick="exportCSV('assets')">${t('export')}</button></div></div>
+    </div>`
+}
+
+/* ===================== SETTINGS ===================== */
+async function viewSettings(v){
+  const sess=Session.get();
+  v.innerHTML=`
+    <h2 class="h1">${t('settings')}</h2>
+    <div class="grid cards">
+      <div class="card"><div class="body">
+        <div class="row" style="align-items:center;gap:12px">
+          <div class="pill"><i class="fa-solid fa-user"></i> ${sess.name||sess.email}</div>
+          <div class="pill">Role: ${sess.role}</div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn" onclick="Theme.toggle()"><i class="fa-solid fa-circle-half-stroke"></i> ${t('dark')}/${t('light')}</button>
+          <button class="btn" onclick="I18N.set(I18N.lang==='th'?'en':'th')"><i class="fa-solid fa-language"></i> ${t('language')}</button>
+          <button class="btn danger" onclick="if(confirm('Sign out?')){Session.clear();location.hash='#/login'}"><i class="fa-solid fa-right-from-bracket"></i> ${t('logout')}</button>
+        </div>
+      </div></div>
+      <div class="card"><div class="body">
+        <h3 class="h1" style="font-size:18px">Data</h3>
+        <div class="row">
+          <button class="btn" onclick="seedDemo()"><i class="fa-solid fa-wand-magic-sparkles"></i> Seed demo data</button>
+          <button class="btn" onclick="downloadBackup()"><i class="fa-solid fa-download"></i> Backup JSON</button>
+          <input type="file" id="restoreFile" class="hidden" accept="application/json" />
+          <button class="btn" onclick="$('#restoreFile').click()"><i class="fa-solid fa-upload"></i> Restore JSON</button>
+        </div>
+      </div></div>
+    </div>`;
+  $('#restoreFile').onchange = restoreBackup;
+}
+
+/* ===================== EXPORT / BACKUP ===================== */
+async function exportCSV(store){
+  const rows = await DB.all(store);
+  if(!rows.length){alert('No data');return}
+  const headers = Object.keys(rows[0]);
+  const csv = [headers.join(',')].concat(rows.map(r=> headers.map(h=> JSON.stringify(r[h]??'')).join(','))).join('\n');
+  const blob = new Blob(["\uFEFF"+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=store+"_export.csv";a.click();
+}
+
+async function downloadBackup(){
+  const data={}; for(const s of ['users','expenses','persons','assets','activity']) data[s]=await DB.all(s);
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ebed_backup.json';a.click();
+}
+async function restoreBackup(e){
+  const file=e.target.files[0]; if(!file) return; const txt=await file.text(); const data=JSON.parse(txt);
+  for(const s of Object.keys(data||{})) for(const row of data[s]) await DB.put(s,row);
+  alert('Restored'); renderRoute();
+}
+
+/* ===================== DEMO DATA ===================== */
+async function seedDemo(){
+  for(let i=0;i<12;i++){
+    const d=new Date(); d.setDate(5); d.setMonth(d.getMonth()-i); const iso=d.toISOString().slice(0,10);
+    await DB.put('expenses',{id:uid('e'), date:iso, category:['อาหาร','เดินทาง','สาธารณูปโภค','อื่นๆ'][i%4], amount: Math.round(Math.random()*3000+200), pay:[t('cash'),t('transfer'),t('credit')][i%3], note:'seed'});
+  }
+  for(let i=0;i<6;i++) await DB.put('persons',{id:uid('p'), name:'Person '+(i+1), gender:i%2?t('female'):t('male'), email:'u'+i+'@example.com', phone:'080-000-000'+i, baptized: i%3===0});
+  for(let i=0;i<5;i++) await DB.put('assets',{id:uid('a'), name:'Asset '+(i+1), code:'AST'+(100+i), condition:[t('good'),t('fair'),t('needRepair')][i%3]});
+  await logActivity('system','Seed demo data');
+  renderRoute();
+}
+
+/* ===================== APP ROOT RENDER ===================== */
+async function renderApp(){
+  if(!DB.db) await DB.init();
+  if(location.hash.startsWith('#/login')||location.hash.startsWith('#/register')||location.hash.startsWith('#/forgot')){viewAuth(location.hash);return}
+  appShell();
+}
+
+// Init
+renderApp();
+</script>
+</body>
+</html>
